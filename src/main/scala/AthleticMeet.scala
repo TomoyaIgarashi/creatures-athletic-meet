@@ -21,6 +21,7 @@ object AthleticMeet {
   }
 
   def getPlayers(): Seq[Creature] = {
+    //TODO 能力値をランダムで与えるようにする
     List(
       new Person(7),
       new Cheetah(5),
@@ -36,22 +37,27 @@ object AthleticMeet {
 
   //TODO 走れる動物のみを受け付けるように引数を変更
   def raceRunning(list: Seq[Creature]): Seq[Creature] = {
+    //TODO implement
     list
   }
 
   //TODO 泳げる動物のみを受け付けるように引数を変更
   def raceSwimming(list: Seq[Creature]): Seq[Creature] = {
+    //TODO implement
     List()
   }
 
   //TODO 飛べる(ジャンプできる)動物のみを受け付けるように引数を変更
   def raceFlying(list: Seq[Creature]): Seq[Creature] = {
+    //TODO implement
     List()
   }
 
   val points = List(10, 5, 3, 2, 1, 0) //順位に応じたポイント
 
+  //TODO 引数が冗長
   def aggregatePoints(players: Seq[Creature], runRank: Seq[Creature], swimRank: Seq[Creature], flyRank: Seq[Creature]): Seq[(Int, Creature)] = {
+    //TODO 水泳・高跳びの順位も見るように
     players.map(creature => {
       val rankIndex = runRank.indexOf(creature)
       val point = if (rankIndex >= 0) points(rankIndex) else 0

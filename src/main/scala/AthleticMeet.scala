@@ -1,4 +1,5 @@
-import model.Creature
+import ability._
+import model._
 import model.player._
 
 /**
@@ -6,63 +7,100 @@ import model.player._
   */
 object AthleticMeet {
 
+  type -->[A, B] = PartialFunction[A, B]
 
   def main(args: Array[String]): Unit = {
-    val players = getPlayers()
-
-    val runRank = raceRunning(players)
-    val swimRank = raceSwimming(players)
-    val flyRank = raceFlying(players)
-
-    val result = aggregatePoints(players, runRank, swimRank, flyRank)
-    result.zipWithIndex.foreach { case (creature, rank) =>
-      println(s"${rank + 1}: ${creature}")
+    val xs = for {
+      _ <- 0 to 5
+    } yield {
+      getRandom
     }
+    val players = getPlayers(xs)
+
+    val runRank = race(players) {
+      case v: Runnable => (v, v.abilityVal * v.factor._1)
+    }
+    val swimRank = race(players) {
+      case v: Swimable => (v, v.abilityVal * v.factor._2)
+    }
+    val flyRank = race(players) {
+      case v: Jumpable => (v, v.abilityVal * v.factor._3)
+    }
+
+    val rank = aggregatePoints(players, runRank, swimRank, flyRank)
+    rank.zipWithIndex.foreach { case (creature, rank) =>
+      println(s"${rank + 1}: ${creature._1}point: ${creature._2}")
+    }
+    val average = averagePoints(rank)
+    average.foreach(println)
   }
 
-  def getPlayers(): Seq[Creature] = {
-    //TODO 能力値をランダムで与えるようにする
+  def getPlayers(abilities: Seq[Int]): Seq[Creature] = {
+    require(abilities.length == 6)
     List(
-      new Person(7),
-      new Cheetah(5),
-      new Crow(1),
-      new Ostrich(1),
-      new Tuna(4),
-      new Sanma(7)
+      new Person(abilities(0), (1, 1, 1)),
+      new Cheetah(abilities(1), (5, 0.5, 1.5)),
+      new Crow(abilities(2), (0.2, 0, 3)),
+      new Ostrich(abilities(3), (10, 0, 1)),
+      new Tuna(abilities(4), (0, 5, 0.3)),
+      new Sanma(abilities(5), (0, 3, 0.1))
     )
   }
-  def getRandom: Int ={
+
+  def getRandom: Int = {
     scala.math.floor(scala.math.random() * 10).toInt + 1
-  }
-
-  //TODO 走れる動物のみを受け付けるように引数を変更
-  def raceRunning(list: Seq[Creature]): Seq[Creature] = {
-    //TODO implement
-    list
-  }
-
-  //TODO 泳げる動物のみを受け付けるように引数を変更
-  def raceSwimming(list: Seq[Creature]): Seq[Creature] = {
-    //TODO implement
-    List()
-  }
-
-  //TODO 飛べる(ジャンプできる)動物のみを受け付けるように引数を変更
-  def raceFlying(list: Seq[Creature]): Seq[Creature] = {
-    //TODO implement
-    List()
   }
 
   val points = List(10, 5, 3, 2, 1, 0) //順位に応じたポイント
 
-  //TODO 引数が冗長
-  def aggregatePoints(players: Seq[Creature], runRank: Seq[Creature], swimRank: Seq[Creature], flyRank: Seq[Creature]): Seq[(Int, Creature)] = {
-    //TODO 水泳・高跳びの順位も見るように
-    players.map(creature => {
-      val rankIndex = runRank.indexOf(creature)
-      val point = if (rankIndex >= 0) points(rankIndex) else 0
-      (point, creature)
+  def race(creatures: Seq[Creature])(pf: Creature --> (Creature, Double)): Seq[(Creature, Int)] = {
+    val xs = creatures collect pf sortBy (_._2 * -1) map (_._1)
+    for {
+      withIndex <- xs.zipWithIndex
+    } yield {
+      val point = points.lift(withIndex._2).getOrElse(0)
+      (withIndex._1, point)
+    }
+  }
+
+  def aggregatePoints(players: Seq[Creature],
+                      runRank: Seq[(Creature, Int)],
+                      swimRank: Seq[(Creature, Int)],
+                      jumpRank: Seq[(Creature, Int)]): Seq[(Int, Creature)] = {
+    def getPoint(creature: Creature, ranks: Seq[(Creature, Int)]): Int = {
+      (for {
+        rank <- ranks if rank._1 == creature
+      } yield {
+        rank._2
+      }).lift(0).getOrElse(0)
+    }
+
+    (for {
+      player <- players
+    } yield {
+      val runPoint = getPoint(player, runRank)
+      val swimPoint = getPoint(player, swimRank)
+      val jumpPoint = getPoint(player, jumpRank)
+      val point = runPoint + swimPoint + jumpPoint
+      (point, player)
     }).sortBy(tup => tup._1 * -1)
   }
 
+  def averagePoints(playerPoints: Seq[(Int, Creature)]): Seq[Double] = {
+    def getAverage(pf: (Int, Creature) --> Int): Double = {
+      val xs = playerPoints collect pf
+      xs.sum / xs.length.toDouble
+    }
+
+    val animalAverage = getAverage {
+      case (n: Int, _: Animal) => n
+    }
+    val fishAverage = getAverage {
+      case (n: Int, _: Fish) => n
+    }
+    val birdAverage = getAverage {
+      case (n: Int, _: Bird) => n
+    }
+    Seq(animalAverage, fishAverage, birdAverage)
+  }
 }

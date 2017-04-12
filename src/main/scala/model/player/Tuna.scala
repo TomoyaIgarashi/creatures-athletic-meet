@@ -1,11 +1,12 @@
 package model.player
 
-import model.Creature
+import ability.{Jumpable, Swimable}
+import model.Fish
 
 /**
   * Created by hideaki on 2017/04/06.
   */
 //マグロ
-case class Tuna(abilityVal: Int) extends Creature{
+case class Tuna(val abilityVal: Int, val factor: Tuple3[Double, Double, Double]) extends Fish with Jumpable with Swimable {
 
 }

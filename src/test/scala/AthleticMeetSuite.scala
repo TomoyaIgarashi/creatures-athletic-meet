@@ -25,6 +25,7 @@ class AthleticMeetSuite extends FunSuite with DiagrammedAssertions {
     case v: Jumpable => (v, v.abilityVal * v.factor._3)
   }
   val aggregatePoints = AthleticMeet.aggregatePoints(players, raceRunning, raceSwimming, raceFlying)
+  val ranks = AthleticMeet.ranks(aggregatePoints)
   val averagePoints = AthleticMeet.averagePoints(aggregatePoints)
 
   test("AthleticMeet#getPlayers") {
@@ -84,6 +85,19 @@ class AthleticMeetSuite extends FunSuite with DiagrammedAssertions {
       (5, Sanma(5, (0.0, 3.0, 0.1))))
     assertResult(result) {
       aggregatePoints
+    }
+  }
+
+  test("AthleticMeet#ranks") {
+    val result = List(
+      1,
+      2,
+      3,
+      3,
+      4,
+      5)
+    assertResult(result) {
+      ranks
     }
   }
 

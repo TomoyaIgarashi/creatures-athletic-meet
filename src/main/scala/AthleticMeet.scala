@@ -86,6 +86,16 @@ object AthleticMeet {
     }).sortBy(tup => tup._1 * -1)
   }
 
+  def ranks(points: Seq[(Int, Creature)]): Seq[Int] = {
+    val xs = points.map(t => t._1)
+    val ys = xs.distinct
+    val zs = points.map { p =>
+      ys.count(_ > p._1) + 1
+    }
+
+    return zs
+  }
+
   def averagePoints(playerPoints: Seq[(Int, Creature)]): Seq[Double] = {
     def getAverage(pf: (Int, Creature) --> Int): Double = {
       val xs = playerPoints collect pf
